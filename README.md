@@ -29,4 +29,6 @@
 
 1. **Клонируйте репозиторий:**
    ```bash
-   git clone https://github.com/yourusername/kbju-calculator.git
+   git clone https://github.com/meshasoft/calorie_calculator
+
+## Следите за мной в телеграме: https://t.me/+T9JF8ldts802NzFi
