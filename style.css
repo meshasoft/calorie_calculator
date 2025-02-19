@@ -1,0 +1,184 @@
+:root {
+  --input-bg: rgba(255, 245, 240, 0.95);
+  --output-bg: rgba(240, 250, 255, 0.95);
+  --accent-color: #5A67D8;
+  --accent-hover: #434190;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #A1C4FD, #C2E9FB);
+}
+
+/* Обёртка для ввода и вывода */
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 30px;
+  max-width: 1200px;
+  margin: auto;
+  flex-wrap: wrap;
+}
+
+/* Секция ввода */
+.input-section {
+  background-color: var(--input-bg);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  flex: 1 1 400px;
+  max-width: 400px;
+  margin: auto;
+}
+
+/* Секция вывода — скрыта по умолчанию */
+.output-section {
+  background-color: var(--output-bg);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+  flex: 1 1 400px;
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+  display: none;
+}
+
+/* Заголовки */
+h1, h2 {
+  text-align: center;
+  margin-top: 0;
+}
+h1 { color: #333; }
+h2 { color: var(--accent-color); margin-bottom: 15px; }
+
+/* Форма */
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+label {
+  font-weight: bold;
+  color: #555;
+  text-align: center;
+  width: 100%;
+}
+input, select {
+  padding: 12px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: 100%;
+  max-width: 400px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+input:focus, select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 5px rgba(90,103,216,0.5);
+  outline: none;
+}
+button {
+  padding: 12px;
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  width: 100%;
+  max-width: 400px;
+  transition: background 0.3s;
+  text-align: center;
+}
+button:hover {
+  background: var(--accent-hover);
+}
+
+/* Блоки результатов и советов */
+#result, #recommendations, #caloriePlan {
+  margin-top: 25px;
+  background: #F7F9FC;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+/* Слайдер */
+.slider-wrapper {
+  position: relative;
+  width: 640px; /* Видимая область слайдера */
+  margin: 20px auto 0;
+  overflow: hidden;
+}
+.slider {
+  display: flex;
+  gap: 20px;
+  overflow-x: scroll;
+  scroll-behavior: smooth;
+  width: 100%;
+  /* Не фиксируем ширину — пусть карточки идут подряд */
+  padding-bottom: 10px;
+}
+/* Скрываем стандартный скроллбар */
+.slider::-webkit-scrollbar { display: none; }
+.slider { scrollbar-width: none; }
+
+.slider-item {
+  flex: 0 0 auto;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 200px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.3s;
+}
+.slider-item:hover { transform: scale(1.05); }
+.slider-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+.slider-info { padding: 10px; }
+.slider-info h3 { font-size: 1.1em; margin: 0 0 5px; }
+
+/* Кнопки слайдера — стрелки */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.5em;
+  cursor: pointer;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.slider-btn:hover { background: var(--accent-hover); }
+.prev-btn { left: 10px; }
+.next-btn { right: 10px; }
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .wrapper { flex-direction: column; padding: 10px; }
+  .slider-wrapper, .slider { width: 100%; }
+  input, select, button { max-width: 100%; }
+}
+@media (max-width: 480px) {
+  .wrapper { gap: 20px; }
+  .slider-item { width: 150px; }
+}

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>КБЖУ калькулятор</title>
+  <style>
+    /* Основные переменные и базовые стили */
+    :root {
+      --input-bg: #fff4e8;
+      --output-bg: #e8f4ff;
+      --accent-color: #5A67D8;
+      --accent-hover: #434190;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #A1C4FD, #C2E9FB);
+    }
+    /* Обертка для секций */
+    .wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    /* Секции ввода и вывода */
+    .input-section,
+    .output-section {
+      width: 100%;
+      max-width: 800px;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .input-section { background-color: var(--input-bg); }
+    .output-section {
+      background-color: var(--output-bg);
+      display: none; /* Скроем до отправки формы */
+    }
+    /* Заголовки */
+    h1, h2 {
+      text-align: center;
+      margin-top: 0;
+    }
+    h1 { color: #333; }
+    h2 { color: var(--accent-color); margin-bottom: 15px; }
+    /* Стили формы */
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+    label {
+      font-weight: bold;
+      color: #555;
+      width: 100%;
+      text-align: center;
+    }
+    input, select {
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      width: 100%;
+      max-width: 800px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 5px rgba(90,103,216,0.5);
+      outline: none;
+    }
+    button {
+      padding: 12px;
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+      width: 100%;
+      max-width: 800px;
+      transition: background 0.3s;
+      text-align: center;
+    }
+    button:hover { background: var(--accent-hover); }
+    /* Блоки вывода данных */
+    #result, #recommendations, #productSlider {
+      margin-top: 20px;
+      background: #F7F9FC;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    /* Слайдер */
+    .slider-wrapper {
+      position: relative;
+      width: 640px; /* Видимая область: 3 карточки по 200px + 2 gap по 20px */
+      margin: 20px auto 0;
+      overflow: hidden;
+    }
+    .slider {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 10px;
+    }
+    .slider::-webkit-scrollbar { display: none; }
+    .slider { scrollbar-width: none; }
+    .slider-item {
+      flex: 0 0 auto;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 200px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.3s;
+      scroll-snap-align: start;
+    }
+    .slider-item:hover { transform: scale(1.05); }
+    .slider-item img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-top-left-radius: 8px;
+      border-top-right-radius: 8px;
+    }
+    .slider-info { padding: 10px; }
+    .slider-info h3 { font-size: 1em; margin: 0 0 5px; }
+    /* Стрелки слайдера */
+    .slider-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 1.5em;
+      cursor: pointer;
+      transition: background 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .slider-btn:hover { background: var(--accent-hover); }
+    .prev-btn { left: 10px; }
+    .next-btn { right: 10px; }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .wrapper { flex-direction: column; padding: 10px; }
+      .slider-wrapper { width: 100%; max-width: 640px; }
+      input, select, button { max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .slider-item { width: 150px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Секция ввода -->
+    <div class="input-section">
+      <h1>КБЖУ калькулятор</h1>
+      <form id="calculatorForm">
+        <label for="age">Возраст:</label>
+        <input type="number" id="age" min="10" max="120" placeholder="Введите возраст (10-120)" required>
+        
+        <label for="weight">Вес (кг):</label>
+        <input type="number" id="weight" min="30" max="300" step="0.1" placeholder="Введите вес (30-300)" required>
+        
+        <label for="height">Рост (см):</label>
+        <input type="number" id="height" min="100" max="250" placeholder="Введите рост (100-250)" required>
+        
+        <label for="gender">Пол:</label>
+        <select id="gender">
+          <option value="male">Мужчина</option>
+          <option value="female">Женщина</option>
+        </select>
+        
+        <label for="activity">Уровень активности:</label>
+        <select id="activity">
+          <option value="1.2">Очень малоподвижный (офис, отсутствие тренировок)</option>
+          <option value="1.375">Легкая активность (1-2 тренировки в неделю)</option>
+          <option value="1.55">Умеренная активность (3-5 тренировок в неделю)</option>
+          <option value="1.725">Высокая активность (ежедневные тренировки)</option>
+          <option value="1.9">Очень высокая активность (профессиональный спорт)</option>
+        </select>
+        
+        <label for="goal">Цель:</label>
+        <select id="goal">
+          <option value="maintain">Поддержание веса</option>
+          <option value="lose">Похудение</option>
+          <option value="gain">Набор массы</option>
+        </select>
+        
+        <label for="region">Страна:</label>
+        <select id="region">
+          <optgroup label="Африка">
+            <option value="Egypt">Egypt</option>
+            <option value="Nigeria">Nigeria</option>
+            <option value="South Africa">South Africa</option>
+            <option value="Kenya">Kenya</option>
+            <option value="Morocco">Morocco</option>
+          </optgroup>
+          <optgroup label="Азия">
+            <option value="China">China</option>
+            <option value="India">India</option>
+            <option value="Japan">Japan</option>
+            <option value="South Korea">South Korea</option>
+            <option value="Indonesia">Indonesia</option>
+            <option value="Saudi Arabia">Saudi Arabia</option>
+          </optgroup>
+          <optgroup label="Европа">
+            <option value="Russia">Russia</option>
+            <option value="Germany">Germany</option>
+            <option value="France">France</option>
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Spain">Spain</option>
+            <option value="Italy">Italy</option>
+          </optgroup>
+          <optgroup label="Северная Америка">
+            <option value="United States">United States</option>
+            <option value="Canada">Canada</option>
+            <option value="Mexico">Mexico</option>
+            <option value="Cuba">Cuba</option>
+          </optgroup>
+          <optgroup label="Южная Америка">
+            <option value="Brazil">Brazil</option>
+            <option value="Argentina">Argentina</option>
+            <option value="Chile">Chile</option>
+            <option value="Colombia">Colombia</option>
+          </optgroup>
+          <optgroup label="Австралия и Океания">
+            <option value="Australia">Australia</option>
+            <option value="New Zealand">New Zealand</option>
+            <option value="Fiji">Fiji</option>
+          </optgroup>
+        </select>
+        
+        <button type="submit">Рассчитать</button>
+      </form>
+    </div>
+    
+    <!-- Секция вывода -->
+    <div class="output-section">
+      <div id="result"></div>
+      <div id="recommendations"></div>
+      <div id="productSlider"></div>
+    </div>
+  </div>
+  
+  <script>
+    window.onload = function() {
+      // Маппинг валют
+      const currencySymbols = {
+        "Egypt": "EGP", "Nigeria": "NGN", "South Africa": "ZAR", "Kenya": "KES",
+        "Morocco": "MAD", "China": "CNY", "India": "₹", "Japan": "¥",
+        "South Korea": "₩", "Indonesia": "IDR", "Saudi Arabia": "SAR", "Russia": "₽",
+        "Germany": "€", "France": "€", "United Kingdom": "£", "Spain": "€",
+        "Italy": "€", "United States": "$", "Canada": "CAD$", "Mexico": "MXN",
+        "Cuba": "CUP", "Brazil": "R$", "Argentina": "ARS", "Chile": "CLP",
+        "Colombia": "COP", "Australia": "A$", "New Zealand": "NZ$", "Fiji": "FJD"
+      };
+      
+      // База советов
+      const adviceByGoal = {
+        maintain: [
+          "Поддерживайте баланс между белками, жирами и углеводами.",
+          "Потребляйте свежие овощи и фрукты для поддержки иммунитета.",
+          "Регулярно занимайтесь умеренной физической активностью.",
+          "Соблюдайте режим сна и отдыха.",
+          "Пейте не менее 2 литров воды в день."
+        ],
+        lose: [
+          "Сократите потребление сахара и простых углеводов.",
+          "Увеличьте потребление белка для сохранения мышечной массы.",
+          "Включите кардиотренировки для эффективного сжигания жира.",
+          "Следите за размером порций, чтобы не переедать.",
+          "Пейте много воды и избегайте калорийных напитков."
+        ],
+        gain: [
+          "Увеличьте потребление белка до 2.2 г/кг для роста мышц.",
+          "Снизьте долю жиров до 20% от калорий, чтобы оставалось больше калорий на углеводы.",
+          "Включите силовые тренировки для гипертрофии мышц.",
+          "Питайтесь часто, равномерно распределяя приемы пищи.",
+          "Обеспечьте качественное восстановление и достаточный сон."
+        ]
+      };
+      
+      // Массивы продуктов для каждой цели
+      const productsGain = [
+        {
+          name: "Говядина",
+          energy: 250,
+          price: { "Egypt": 50, "Nigeria": 120, "South Africa": 40, "Kenya": 60, "Morocco": 45, "China": 25, "India": 180, "Japan": 400, "South Korea": 350, "Indonesia": 20, "Saudi Arabia": 150, "Russia": 200, "Germany": 3.50, "France": 3.60, "United Kingdom": 3.80, "Spain": 3.80, "Italy": 3.80, "United States": 4.50, "Canada": 5.00, "Mexico": 70, "Cuba": 60, "Brazil": 25, "Argentina": 20, "Chile": 80, "Colombia": 75, "Australia": 4.00, "New Zealand": 4.50, "Fiji": 4.80 },
+          image: "images/beef.jpg",
+          tip: "Высококалорийный, богат белком для роста мышц."
+        },
+        {
+          name: "Куриная грудка",
+          energy: 165,
+          price: { "Egypt": 30, "Nigeria": 80, "South Africa": 25, "Kenya": 35, "Morocco": 30, "China": 20, "India": 150, "Japan": 300, "South Korea": 250, "Indonesia": 15, "Saudi Arabia": 120, "Russia": 180, "Germany": 2.50, "France": 2.60, "United Kingdom": 2.80, "Spain": 2.80, "Italy": 2.80, "United States": 3.50, "Canada": 4.00, "Mexico": 50, "Cuba": 45, "Brazil": 15, "Argentina": 12, "Chile": 60, "Colombia": 55, "Australia": 3.00, "New Zealand": 3.50, "Fiji": 3.80 },
+          image: "images/chicken.jpg",
+          tip: "Низкокалорийная белковая основа для набора массы."
+        },
+        {
+          name: "Рис",
+          energy: 130,
+          price: { "Egypt": 10, "Nigeria": 25, "South Africa": 8, "Kenya": 10, "Morocco": 9, "China": 7, "India": 30, "Japan": 40, "South Korea": 35, "Indonesia": 5, "Saudi Arabia": 20, "Russia": 15, "Germany": 0.80, "France": 0.90, "United Kingdom": 1.00, "Spain": 1.00, "Italy": 1.00, "United States": 1.20, "Canada": 1.30, "Mexico": 15, "Cuba": 14, "Brazil": 5, "Argentina": 4, "Chile": 12, "Colombia": 11, "Australia": 1.00, "New Zealand": 1.10, "Fiji": 1.20 },
+          image: "images/rice.jpg",
+          tip: "Хороший источник углеводов для энергии."
+        },
+        {
+          name: "Макароны",
+          energy: 150,
+          price: { "Egypt": 12, "Nigeria": 30, "South Africa": 10, "Kenya": 12, "Morocco": 11, "China": 9, "India": 35, "Japan": 50, "South Korea": 45, "Indonesia": 8, "Saudi Arabia": 25, "Russia": 18, "Germany": 0.90, "France": 1.00, "United Kingdom": 1.10, "Spain": 1.10, "Italy": 1.10, "United States": 1.30, "Canada": 1.40, "Mexico": 18, "Cuba": 16, "Brazil": 6, "Argentina": 5, "Chile": 15, "Colombia": 14, "Australia": 1.10, "New Zealand": 1.20, "Fiji": 1.30 },
+          image: "images/pasta.jpg",
+          tip: "Быстрые углеводы для увеличения калорийности."
+        },
+        {
+          name: "Бананы",
+          energy: 89,
+          price: { "Egypt": 8, "Nigeria": 18, "South Africa": 6, "Kenya": 7, "Morocco": 6, "China": 5, "India": 20, "Japan": 30, "South Korea": 25, "Indonesia": 4, "Saudi Arabia": 18, "Russia": 14, "Germany": 0.70, "France": 0.80, "United Kingdom": 0.90, "Spain": 0.90, "Italy": 0.90, "United States": 1.00, "Canada": 1.10, "Mexico": 12, "Cuba": 10, "Brazil": 4, "Argentina": 3, "Chile": 10, "Colombia": 9, "Australia": 0.90, "New Zealand": 1.00, "Fiji": 1.10 },
+          image: "images/banana.jpg",
+          tip: "Быстрые углеводы для набора калорий."
+        }
+      ];
+      
+      const productsLose = [
+        {
+          name: "Лосось",
+          energy: 208,
+          price: { "Egypt": 150, "Nigeria": 300, "South Africa": 120, "Kenya": 130, "Morocco": 140, "China": 100, "India": 350, "Japan": 700, "South Korea": 650, "Indonesia": 90, "Saudi Arabia": 600, "Russia": 500, "Germany": 5.0, "France": 5.5, "United Kingdom": 6, "Spain": 6, "Italy": 6, "United States": 7, "Canada": 8, "Mexico": 120, "Cuba": 115, "Brazil": 40, "Argentina": 35, "Chile": 90, "Colombia": 85, "Australia": 8.5, "New Zealand": 9, "Fiji": 9.5 },
+          image: "images/salmon.jpg",
+          tip: "Богат омега-3, помогает сжигать жиры."
+        },
+        {
+          name: "Брокколи",
+          energy: 55,
+          price: { "Egypt": 50, "Nigeria": 100, "South Africa": 40, "Kenya": 45, "Morocco": 42, "China": 35, "India": 120, "Japan": 250, "South Korea": 230, "Indonesia": 30, "Saudi Arabia": 210, "Russia": 150, "Germany": 2.5, "France": 2.8, "United Kingdom": 3, "Spain": 3, "Italy": 3, "United States": 3.5, "Canada": 4, "Mexico": 60, "Cuba": 58, "Brazil": 20, "Argentina": 18, "Chile": 70, "Colombia": 65, "Australia": 4.5, "New Zealand": 5, "Fiji": 5.2 },
+          image: "images/broccoli.jpg",
+          tip: "Низкокалорийный овощ, богат клетчаткой."
+        },
+        {
+          name: "Цветная капуста",
+          energy: 25,
+          price: { "Egypt": 30, "Nigeria": 60, "South Africa": 25, "Kenya": 28, "Morocco": 26, "China": 20, "India": 50, "Japan": 70, "South Korea": 65, "Indonesia": 18, "Saudi Arabia": 60, "Russia": 45, "Germany": 1.2, "France": 1.3, "United Kingdom": 1.4, "Spain": 1.4, "Italy": 1.4, "United States": 2, "Canada": 2.5, "Mexico": 40, "Cuba": 38, "Brazil": 15, "Argentina": 12, "Chile": 45, "Colombia": 42, "Australia": 2.0, "New Zealand": 2.2, "Fiji": 2.3 },
+          image: "images/cauliflower.jpg",
+          tip: "Очень низкокалорийный, богат клетчаткой."
+        },
+        {
+          name: "Шпинат",
+          energy: 23,
+          price: { "Egypt": 35, "Nigeria": 70, "South Africa": 30, "Kenya": 32, "Morocco": 30, "China": 18, "India": 55, "Japan": 80, "South Korea": 75, "Indonesia": 16, "Saudi Arabia": 65, "Russia": 50, "Germany": 1.3, "France": 1.5, "United Kingdom": 1.6, "Spain": 1.6, "Italy": 1.6, "United States": 2.2, "Canada": 2.8, "Mexico": 45, "Cuba": 42, "Brazil": 18, "Argentina": 15, "Chile": 50, "Colombia": 47, "Australia": 2.2, "New Zealand": 2.4, "Fiji": 2.5 },
+          image: "images/spinach.jpg",
+          tip: "Богат витаминами и минералами, низкокалорийный."
+        },
+        {
+          name: "Яблоки",
+          energy: 52,
+          price: { "Egypt": 20, "Nigeria": 40, "South Africa": 15, "Kenya": 18, "Morocco": 16, "China": 10, "India": 30, "Japan": 35, "South Korea": 32, "Indonesia": 8, "Saudi Arabia": 30, "Russia": 25, "Germany": 0.8, "France": 0.9, "United Kingdom": 1, "Spain": 1, "Italy": 1, "United States": 1.5, "Canada": 1.8, "Mexico": 20, "Cuba": 18, "Brazil": 7, "Argentina": 6, "Chile": 22, "Colombia": 20, "Australia": 1.2, "New Zealand": 1.3, "Fiji": 1.4 },
+          image: "images/apples.jpg",
+          tip: "Низкокалорийный фрукт для контроля аппетита."
+        }
+      ];
+      
+      const productsMaintain = [
+        {
+          name: "Куриная грудка",
+          energy: 165,
+          price: { "Egypt": 30, "Nigeria": 80, "South Africa": 25, "Kenya": 35, "Morocco": 30, "China": 20, "India": 150, "Japan": 300, "South Korea": 250, "Indonesia": 15, "Saudi Arabia": 120, "Russia": 180, "Germany": 2.50, "France": 2.60, "United Kingdom": 2.80, "Spain": 2.80, "Italy": 2.80, "United States": 3.50, "Canada": 4.00, "Mexico": 50, "Cuba": 45, "Brazil": 15, "Argentina": 12, "Chile": 60, "Colombia": 55, "Australia": 3.00, "New Zealand": 3.50, "Fiji": 3.80 },
+          image: "images/chicken.jpg",
+          tip: "Отличный источник белка для поддержания веса."
+        },
+        {
+          name: "Овсянка",
+          energy: 350,
+          price: { "Egypt": 25, "Nigeria": 60, "South Africa": 20, "Kenya": 25, "Morocco": 22, "China": 18, "India": 120, "Japan": 160, "South Korea": 140, "Indonesia": 15, "Saudi Arabia": 110, "Russia": 90, "Germany": 1.20, "France": 1.30, "United Kingdom": 1.40, "Spain": 1.40, "Italy": 1.40, "United States": 1.80, "Canada": 2.00, "Mexico": 35, "Cuba": 32, "Brazil": 12, "Argentina": 10, "Chile": 40, "Colombia": 35, "Australia": 1.20, "New Zealand": 1.30, "Fiji": 1.40 },
+          image: "images/oats.jpg",
+          tip: "Источник сложных углеводов для стабильной энергии."
+        },
+        {
+          name: "Яйца",
+          energy: 155,
+          price: { "Egypt": 40, "Nigeria": 80, "South Africa": 35, "Kenya": 38, "Morocco": 42, "China": 15, "India": 60, "Japan": 100, "South Korea": 90, "Indonesia": 14, "Saudi Arabia": 80, "Russia": 70, "Germany": 1.8, "France": 2, "United Kingdom": 2.2, "Spain": 2.2, "Italy": 2.2, "United States": 3, "Canada": 3.5, "Mexico": 45, "Cuba": 43, "Brazil": 10, "Argentina": 8, "Chile": 50, "Colombia": 48, "Australia": 2.5, "New Zealand": 2.7, "Fiji": 2.8 },
+          image: "images/eggs.jpg",
+          tip: "Богаты белком и полезными жирами для поддержания веса."
+        },
+        {
+          name: "Гречка",
+          energy: 343,
+          price: { "Egypt": 35, "Nigeria": 80, "South Africa": 30, "Kenya": 40, "Morocco": 38, "China": 25, "India": 70, "Japan": 90, "South Korea": 85, "Indonesia": 22, "Saudi Arabia": 75, "Russia": 110, "Germany": 1.2, "France": 1.4, "United Kingdom": 1.5, "Spain": 1.5, "Italy": 1.5, "United States": 2, "Canada": 2.2, "Mexico": 60, "Cuba": 58, "Brazil": 20, "Argentina": 18, "Chile": 70, "Colombia": 65, "Australia": 1.8, "New Zealand": 2, "Fiji": 2.1 },
+          image: "images/buckwheat.jpg",
+          tip: "Источник сложных углеводов для стабильной энергии."
+        }
+      ];
+      
+      // Функция перемешивания массива
+      function shuffleArray(array) {
+        return array
+          .map(item => ({ item, sort: Math.random() }))
+          .sort((a, b) => a.sort - b.sort)
+          .map(({ item }) => item);
+      }
+      
+      // Функция для отображения слайдера с продуктами для выбранной цели
+      function displayProductSlider(goal, region) {
+        const sliderContainer = document.getElementById('productSlider');
+        sliderContainer.innerHTML = "<h2>Рекомендуемые продукты</h2>";
+        
+        let products;
+        if (goal === 'gain') {
+          products = productsGain;
+        } else if (goal === 'lose') {
+          products = productsLose;
+        } else {
+          products = productsMaintain;
+        }
+        
+        // Создаем обертку слайдера с фиксированной видимой областью 640px
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.className = "slider-wrapper";
+        sliderWrapper.style.width = "640px"; // Видимая область для 3 карточек
+        
+        // Стрелки
+        const prevBtn = document.createElement('button');
+        prevBtn.className = "slider-btn prev-btn";
+        prevBtn.innerHTML = "&#8592;";
+        const nextBtn = document.createElement('button');
+        nextBtn.className = "slider-btn next-btn";
+        nextBtn.innerHTML = "&#8594;";
+        
+        // Контейнер слайдера
+        const slider = document.createElement('div');
+        slider.className = "slider";
+        
+        const shuffled = shuffleArray(products);
+        shuffled.forEach(product => {
+          const symbol = currencySymbols[region] || "";
+          const card = document.createElement('div');
+          card.className = "slider-item";
+          card.innerHTML = `
+            <img src="${product.image}" alt="${product.name}">
+            <div class="slider-info">
+              <h3>${product.name}</h3>
+              <p>${product.energy} ккал/100г</p>
+              <p>Цена: ${product.price[region]} ${symbol}/100г</p>
+              <p>${product.tip}</p>
+            </div>
+          `;
+          slider.appendChild(card);
+        });
+        
+        sliderWrapper.appendChild(prevBtn);
+        sliderWrapper.appendChild(slider);
+        sliderWrapper.appendChild(nextBtn);
+        sliderContainer.appendChild(sliderWrapper);
+        
+        // Прокрутка на 3 карточки (200px + 20px gap)
+        const scrollAmount = (200 + 20) * 3;
+        prevBtn.addEventListener('click', () => {
+          slider.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+        nextBtn.addEventListener('click', () => {
+          slider.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+      }
+      
+      // Обработчик формы
+      document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const age = Number(document.getElementById('age').value);
+        const weight = Number(document.getElementById('weight').value);
+        const height = Number(document.getElementById('height').value);
+        const gender = document.getElementById('gender').value;
+        const activity = Number(document.getElementById('activity').value);
+        const goal = document.getElementById('goal').value;
+        const region = document.getElementById('region').value;
+        
+        let bmr = (gender === 'male')
+          ? (10 * weight) + (6.25 * height) - (5 * age) + 5
+          : (10 * weight) + (6.25 * height) - (5 * age) - 161;
+        
+        let dailyCalories = bmr * activity;
+        if (goal === 'lose') {
+          dailyCalories -= 500;
+        } else if (goal === 'gain') {
+          dailyCalories += 500;
+        }
+        
+        let protein, fats, carbs;
+        if (goal === 'gain') {
+          protein = weight * 2.2;
+          fats = (dailyCalories * 0.20) / 9;
+        } else if (goal === 'lose') {
+          protein = weight * 2.0;
+          fats = (dailyCalories * 0.25) / 9;
+        } else {
+          protein = weight * 1.8;
+          fats = (dailyCalories * 0.25) / 9;
+        }
+        carbs = (dailyCalories - (protein * 4 + fats * 9)) / 4;
+        
+        document.getElementById('result').innerHTML = `
+          <h2>Результаты:</h2>
+          <p>Дневная норма калорий: <strong>${Math.round(dailyCalories)}</strong> ккал</p>
+          <p>Белки: <strong>${Math.round(protein)}</strong> г</p>
+          <p>Жиры: <strong>${Math.round(fats)}</strong> г</p>
+          <p>Углеводы: <strong>${Math.round(carbs)}</strong> г</p>
+        `;
+        
+        // Вывод советов
+        const recContainer = document.getElementById('recommendations');
+        recContainer.innerHTML = "";
+        (function displayAdvice(goal) {
+          recContainer.innerHTML = "<h2>Советы</h2>";
+          const adviceArray = adviceByGoal[goal];
+          if (!adviceArray || adviceArray.length === 0) {
+            recContainer.innerHTML += "<p>Нет советов для выбранной цели.</p>";
+            return;
+          }
+          const selectedAdvice = shuffleArray(adviceArray).slice(0, 3);
+          selectedAdvice.forEach(advice => {
+            const p = document.createElement('p');
+            p.textContent = advice;
+            recContainer.appendChild(p);
+          });
+        })(goal);
+        
+        // Вывод слайдера с продуктами
+        displayProductSlider(goal, region);
+        
+        // Делаем блок вывода видимым
+        document.querySelector('.output-section').style.display = 'block';
+      });
+    };
+  </script>
+</body>
+</html>
